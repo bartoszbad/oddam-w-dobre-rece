@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'oddam_w_dobre_rece'
+    'charity'
 ]
 
 MIDDLEWARE = [
