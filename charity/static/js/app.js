@@ -243,7 +243,7 @@ document.addEventListener("DOMContentLoaded", function() {
      * TODO: validation, send data to server
      */
     submit(e) {
-      e.preventDefault();
+      //e.preventDefault();
       this.currentStep++;
       this.updateForm();
     }
@@ -252,4 +252,13 @@ document.addEventListener("DOMContentLoaded", function() {
   if (form !== null) {
     new FormSteps(form);
   }
+
+  /**
+  let checkboxes = $('.checkbox')
+  checkboxes.each(function (index, checkbox) {
+    checkbox.click(function () {
+      let category = $(this).id.val()
+      console.log(category)
+    })
+  })*/
 });

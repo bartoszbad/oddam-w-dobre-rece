@@ -6,23 +6,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
     <title>Document</title>
+    <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
     <script defer src="{% static 'js/app.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
 </head>
 <body>
 <header {% block class %}{% endblock %} id="header">
     <nav class="container container--70">
-        <ul class="nav--actions">
-            <li><a href="/Login/" class="btn btn--small btn--without-border">Zaloguj</a></li>
-            <li><a href="/Register/" class="btn btn--small btn--highlighted">Załóż konto</a></li>
-        </ul>
+        {% if user.is_authenticated == False %}
+            <ul class="nav--actions">
+                <li><a href="/Login/" class="btn btn--small btn--without-border">Zaloguj</a></li>
+                <li><a href="/Register/" class="btn btn--small btn--highlighted">Załóż konto</a></li>
+            </ul>
+        {% endif %}
+        {% if user.is_authenticated %}
+            <ul class="nav--actions">
+                <li class="logged-user">
+                    Witaj {{ user.first_name }}
+                    <ul class="dropdown">
+                        <li><a href="/Profile/">Profil</a></li>
+                        <li><a href="#">Ustawienia</a></li>
+                        <li><a href="/Logout/">Wyloguj</a></li>
+                        {% if user.is_staff %}
+                            <li><a href="/admin/">Panel Administartora</a>
+                        {% endif %}
+                    </ul>
+                </li>
+            </ul>
+        {% endif %}
 
         <ul>
             <li><a href="../#header" class="btn btn--without-border active">Start</a></li>
             <li><a href="../#steps" class="btn btn--without-border">O co chodzi?</a></li>
             <li><a href="../#about-us" class="btn btn--without-border">O nas</a></li>
             <li><a href="../#help" class="btn btn--without-border">Fundacje i organizacje</a></li>
-            <li><a href="/AddDonation/" class="btn btn--without-border">Przekaż dary</a></li>
+            {% if user.is_authenticated == True %}
+                <li><a href="/AddDonation/" class="btn btn--without-border">Przekaż dary</a></li>
+            {% endif %}
             <li><a href="../#contact" class="btn btn--without-border">Kontakt</a></li>
         </ul>
     </nav>
