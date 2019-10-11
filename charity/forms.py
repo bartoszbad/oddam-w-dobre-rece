@@ -39,3 +39,35 @@ class LoginForm(forms.Form):
     login = forms.CharField(label="", widget=forms.TextInput(attrs={'placeholder': 'E-mail'}))
     password = forms.CharField(label="",
                                widget=forms.PasswordInput(attrs={'placeholder': 'Hasło'}))
+
+
+class EditProfileForm(ModelForm):
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email", "password"]
+        widgets = {
+            "password": forms.PasswordInput(attrs={'placeholder': 'Hasło'})
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(EditProfileForm, self).__init__(*args, **kwargs)
+        self.fields["password"].label = "Aby potwierdzić podaj hasło"
+        self.fields["first_name"].label = "Zmień imię:"
+        self.fields["last_name"].label = "Zmień nazwisko:"
+        self.fields["email"].label = "Zmień email:"
+
+
+class EditPasswordForm(forms.Form):
+    old_password = forms.CharField(label="", widget=forms.PasswordInput(attrs={'placeholder': 'Stare hasło'}))
+    new_password = forms.CharField(label="", widget=forms.PasswordInput(attrs={'placeholder': 'Nowe hasło'}))
+    new_password_repeated = forms.CharField(label="", widget=forms.PasswordInput(attrs={'placeholder': 'Powtórz nowe hasło'}))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get("new_password")
+        new_password_repeated = cleaned_data.get("new_password_repeated")
+
+        if new_password != new_password_repeated:
+            raise forms.ValidationError(
+                "Hasła nie pasują!"
+            )

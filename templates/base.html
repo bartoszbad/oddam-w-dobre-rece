@@ -25,7 +25,7 @@
                     Witaj {{ user.first_name }}
                     <ul class="dropdown">
                         <li><a href="/Profile/">Profil</a></li>
-                        <li><a href="#">Ustawienia</a></li>
+                        <li><a href="/EditProfile/">Ustawienia</a></li>
                         <li><a href="/Logout/">Wyloguj</a></li>
                         {% if user.is_staff %}
                             <li><a href="/admin/">Panel Administartora</a>

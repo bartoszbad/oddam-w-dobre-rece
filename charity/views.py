@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.views import View
 
 # Create your views here.
-from charity.forms import RegisterForm, LoginForm
+from charity.forms import RegisterForm, LoginForm, EditProfileForm, EditPasswordForm
 from charity.models import Donation, Category, Institution
 
 
@@ -33,9 +33,24 @@ class AddDonationView(View):
                                                      "institutions": institutions})
 
     def post(self, request):
-        print("post")
         quantity = request.POST.get("bags")
-        print(quantity)
+        categories = request.POST.getlist("categories")  # pobiera listę z nazwami kategorii
+        categories_objects = Category.objects.filter(name__in=categories)
+        institution = request.POST.get("organization")
+        institution_object = Institution.objects.get(name=institution)
+        address = request.POST.get("address")
+        city = request.POST.get("city")
+        zip_code = request.POST.get("postcode")
+        phone_number = request.POST.get("phone")
+        date = request.POST.get("data")
+        time = request.POST.get("time")
+        comment = request.POST.get("more_info")
+        donation = Donation.objects.create(quantity=quantity, address=address, phone_number=phone_number,
+                                           city=city, zip_code=zip_code, pick_up_date=date, pick_up_time=time,
+                                           pick_up_comment=comment, user=request.user,
+                                           institution_id=institution_object.id)
+        donation.categories.set(categories_objects)
+        donation.save()
         return redirect(reverse("form_confirmation"))
 
 
@@ -108,3 +123,49 @@ class DonationStatusEditView(View):
         donation.save()
         return redirect(f'/Profile/#donations')
 
+
+class EditUserProfileView(View):
+    def get(self, request):
+        form = EditProfileForm(initial={"first_name": request.user.first_name,
+                                        "last_name": request.user.last_name,
+                                        "email": request.user.email})
+        return render(request, 'edit_profile.html', context={"form": form})
+
+    def post(self, request):
+        form = EditProfileForm(request.POST)
+        if form.is_valid():
+            user = authenticate(username=request.user.email, password=form.cleaned_data["password"])
+            if user is not None:
+                user.first_name = form.cleaned_data["first_name"]
+                user.last_name = form.cleaned_data["last_name"]
+                user.email = form.cleaned_data["email"]
+                user.save()
+                return redirect(reverse('profile'))
+            else:
+                form = EditProfileForm(initial={"first_name": form.cleaned_data["first_name"],
+                                                "last_name": form.cleaned_data["last_name"],
+                                                "email": form.cleaned_data["email"]})
+                message = "Podano błędne hasło!"
+                return render(request, "edit_profile.html", context={"form": form,
+                                                                     "message": message})
+        return render(request, 'edit_profile.html', context={"form": form})
+
+
+class EditUserPasswordView(View):
+    def get(self, request):
+        form = EditPasswordForm()
+        return render(request, 'edit_password.html', context={"form": form})
+
+    def post(self, request):
+        form = EditPasswordForm(request.POST)
+        if form.is_valid():
+            user = authenticate(username=request.user.email, password=form.cleaned_data["old_password"])
+            if user is not None:
+                user.set_password(form.cleaned_data["new_password"])
+                user.save()
+                return redirect(reverse('profile'))
+            else:
+                message = "Podano błędne hasło!"
+                return render(request, "edit_profile.html", context={"form": form,
+                                                                     "message": message})
+        return render(request, 'edit_profile.html', context={"form": form})

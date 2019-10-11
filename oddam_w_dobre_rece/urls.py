@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.contrib.auth.decorators import login_required
 from django.urls import path
 from charity.views import LandingPageView, AddDonationView, LoginView, RegisterView, LogoutView, UserProfileView, \
-    DonationStatusEditView, AddDonationConfirmView
+    DonationStatusEditView, AddDonationConfirmView, EditUserProfileView, EditUserPasswordView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,6 +27,8 @@ urlpatterns = [
     path('Register/', RegisterView.as_view(), name="register"),
     path('Logout/', login_required(LogoutView.as_view()), name="logout"),
     path('Profile/', login_required(UserProfileView.as_view()), name="profile"),
+    path('EditProfile/', login_required(EditUserProfileView.as_view()), name="edit_profile"),
+    path('ChangePassword/', login_required(EditUserPasswordView.as_view()), name="edit_password"),
     path('Donation/<int:donation_id>/', login_required(DonationStatusEditView.as_view()), name="status"),
     path('AddDonationConfirm/', login_required(AddDonationConfirmView.as_view()), name="form_confirmation"),
 ]

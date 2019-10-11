@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+    <section class="login-page">
+        <h2>Podaj dane, które chcesz edytować</h2>
+        <form method="POST" class="form-group">
+            <div class="form-group">
+                {{ form.as_p }}
+                {% csrf_token %}
+            </div>
+            <div>{{ message }}</div>
+            <div class="form-group form-group--buttons">
+                <a href="/ChangePassword/" class="btn btn--without-border">Zmień hasło</a>
+                <button class="btn" type="submit">Zmień</button>
+            </div>
+        </form>
+    </section>
+{% endblock %}
