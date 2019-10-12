@@ -260,3 +260,16 @@ def reset(request, uidb64, token):
             return redirect(reverse('login'))
         else:
             return render(request, 'reset_password.html', context={"form": form})
+
+
+class ContactFormView(View):
+    def post(self, request):
+        name = request.POST.get('name')
+        surname = request.POST.get('surname')
+        message = request.POST.get('message')
+        email_subject = f'Witaj! {name} {surname} wysłał Ci wiadomość poprzez formularz kontaktowy "Oddam w dobre ręce!'
+        superusers = User.objects.filter(is_superuser=True)
+        for superuser in superusers:
+            contact_form_email = EmailMessage(email_subject, message, to=[superuser.email])
+            contact_form_email.send()
+        return render(request, "index.html")

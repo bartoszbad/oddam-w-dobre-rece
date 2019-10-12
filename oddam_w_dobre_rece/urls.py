@@ -18,7 +18,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import path, re_path
 from charity.views import LandingPageView, AddDonationView, LoginView, RegisterView, LogoutView, UserProfileView, \
     DonationStatusEditView, AddDonationConfirmView, EditUserProfileView, EditUserPasswordView, activate, \
-    RemindPasswordView, reset
+    RemindPasswordView, reset, ContactFormView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -34,5 +34,6 @@ urlpatterns = [
     path('ChangePassword/', login_required(EditUserPasswordView.as_view()), name="edit_password"),
     path('Donation/<int:donation_id>/', login_required(DonationStatusEditView.as_view()), name="status"),
     path('AddDonationConfirm/', login_required(AddDonationConfirmView.as_view()), name="form_confirmation"),
-    path('RemindPassword/', RemindPasswordView.as_view(), name="remind_password")
+    path('RemindPassword/', RemindPasswordView.as_view(), name="remind_password"),
+    path('ContactForm/', ContactFormView.as_view(), name="contact_form")
 ]
