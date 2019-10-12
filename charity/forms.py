@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth.models import User
 from django.forms import ModelForm
 
+from charity.password_validators import validators
+
 
 class RegisterForm(ModelForm):
     password_repeated = forms.CharField(label="", widget=forms.PasswordInput(attrs={'placeholder': "Powtórz hasło"}))
@@ -15,6 +17,8 @@ class RegisterForm(ModelForm):
             raise forms.ValidationError(
                 "Hasła nie pasują!"
             )
+
+        validators(password)
 
     class Meta:
         model = User
@@ -61,6 +65,26 @@ class EditPasswordForm(forms.Form):
     old_password = forms.CharField(label="", widget=forms.PasswordInput(attrs={'placeholder': 'Stare hasło'}))
     new_password = forms.CharField(label="", widget=forms.PasswordInput(attrs={'placeholder': 'Nowe hasło'}))
     new_password_repeated = forms.CharField(label="", widget=forms.PasswordInput(attrs={'placeholder': 'Powtórz nowe hasło'}))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get("new_password")
+        new_password_repeated = cleaned_data.get("new_password_repeated")
+
+        if new_password != new_password_repeated:
+            raise forms.ValidationError(
+                "Hasła nie pasują!"
+            )
+
+
+class RemindPasswordForm(forms.Form):
+    email = forms.EmailField(label="Podaj adres email konta:", widget=forms.EmailInput(attrs={'placeholder': 'Email'}))
+
+
+class ResetPasswordForm(forms.Form):
+    new_password = forms.CharField(label="", widget=forms.PasswordInput(attrs={'placeholder': 'Nowe hasło'}))
+    new_password_repeated = forms.CharField(label="",
+                                            widget=forms.PasswordInput(attrs={'placeholder': 'Powtórz nowe hasło'}))
 
     def clean(self):
         cleaned_data = super().clean()

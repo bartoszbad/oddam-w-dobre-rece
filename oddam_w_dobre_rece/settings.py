@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 try:
-    from oddam_w_dobre_rece.local_settings import user, password
+    from oddam_w_dobre_rece.local_settings import user, password, email, email_password
 except ModuleNotFoundError:
     print("Brak pliku local_settings")
     exit(0)
@@ -125,6 +125,13 @@ USE_L10N = True
 
 USE_TZ = True
 
+# email config
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = email
+EMAIL_HOST_PASSWORD = email_password
+EMAIL_PORT = 587
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/

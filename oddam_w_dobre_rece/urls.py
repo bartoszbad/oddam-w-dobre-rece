@@ -15,15 +15,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
-from django.urls import path
+from django.urls import path, re_path
 from charity.views import LandingPageView, AddDonationView, LoginView, RegisterView, LogoutView, UserProfileView, \
-    DonationStatusEditView, AddDonationConfirmView, EditUserProfileView, EditUserPasswordView
+    DonationStatusEditView, AddDonationConfirmView, EditUserProfileView, EditUserPasswordView, activate, \
+    RemindPasswordView, reset
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', LandingPageView.as_view(), name="landing_page"),
     path('AddDonation/', login_required(AddDonationView.as_view()), name="add_donation"),
     path('Login/', LoginView.as_view(), name="login"),
+    re_path(r'^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', activate, name="activate"),
+    re_path(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', reset, name="reset"),
     path('Register/', RegisterView.as_view(), name="register"),
     path('Logout/', login_required(LogoutView.as_view()), name="logout"),
     path('Profile/', login_required(UserProfileView.as_view()), name="profile"),
@@ -31,4 +34,5 @@ urlpatterns = [
     path('ChangePassword/', login_required(EditUserPasswordView.as_view()), name="edit_password"),
     path('Donation/<int:donation_id>/', login_required(DonationStatusEditView.as_view()), name="status"),
     path('AddDonationConfirm/', login_required(AddDonationConfirmView.as_view()), name="form_confirmation"),
+    path('RemindPassword/', RemindPasswordView.as_view(), name="remind_password")
 ]

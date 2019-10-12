@@ -1,14 +1,21 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ValidationError
+from django.core.mail import EmailMessage
 from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views import View
 
 # Create your views here.
-from charity.forms import RegisterForm, LoginForm, EditProfileForm, EditPasswordForm
+from charity.forms import RegisterForm, LoginForm, EditProfileForm, EditPasswordForm, RemindPasswordForm, \
+    ResetPasswordForm
 from charity.models import Donation, Category, Institution
+from charity.tokens import account_activation_token
 
 
 class LandingPageView(View):
@@ -103,8 +110,20 @@ class RegisterView(View):
             password = form.cleaned_data["password"]
             user = User.objects.create_user(username=email, email=email,
                                             first_name=first_name, last_name=last_name,
-                                            password=password)
-            return redirect(reverse('login'))
+                                            password=password, is_active=False)
+            current_site = get_current_site(request)
+            mail_subject = 'Aktywuj swoje konto na Oddaj w dobre ręce!'
+            message = render_to_string('account_activate_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': account_activation_token.make_token(user),
+            })
+            activation_email = EmailMessage(
+                mail_subject, message, to=[email]
+            )
+            activation_email.send()
+            return redirect(reverse('landing_page'))
 
         return render(request, "register.html", context={"form": form})
 
@@ -169,3 +188,75 @@ class EditUserPasswordView(View):
                 return render(request, "edit_profile.html", context={"form": form,
                                                                      "message": message})
         return render(request, 'edit_profile.html', context={"form": form})
+
+
+def activate(request, uidb64, token):
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        login(request, user)
+        return redirect('landing_page')
+    else:
+        return redirect('register')
+
+
+class RemindPasswordView(View):
+    def get(self, request):
+        form = RemindPasswordForm()
+        return render(request, 'remind_password.html', context={"form": form})
+
+    def post(self, request):
+        form = RemindPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["email"]
+            user = User.objects.get(email=email)
+            if not user:
+                form = RemindPasswordForm()
+                return render(request, 'remind_password.html', context={"form": form,
+                                                                        "message": "Nie ma takiego konta!"})
+            else:
+                current_site = get_current_site(request)
+                mail_subject = 'Resetuj hasło do konta na portalu Oddaj w dobre ręce!'
+                message = render_to_string('password_reset_email.html', {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'uid': urlsafe_base64_encode(force_bytes(user.id)),
+                    'token': account_activation_token.make_token(user),
+                })
+                password_reset_email = EmailMessage(
+                    mail_subject, message, to=[email]
+                )
+                password_reset_email.send()
+                return redirect(reverse('landing_page'))
+
+        return render(request, "remind_password.html")
+
+
+def reset(request, uidb64, token):
+    if request.method == "GET":
+        try:
+            uid = force_text(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+        if user is not None and account_activation_token.check_token(user, token):
+            form = ResetPasswordForm()
+            return render(request, "reset_password.html", context={"user": user,
+                                                                   "form": form})
+        else:
+            return redirect("landing_page")
+    elif request.method == "POST":
+        form = ResetPasswordForm(request.POST)
+        if form.is_valid():
+            email = request.POST.get("email")
+            user = User.objects.get(email=email)
+            user.set_password(form.cleaned_data["new_password"])
+            user.save()
+            return redirect(reverse('login'))
+        else:
+            return render(request, 'reset_password.html', context={"form": form})

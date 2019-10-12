@@ -1,0 +1,5 @@
+{% autoescape off %}
+Witaj {{ user.first_name }},
+Aby aktywować swoje konto na "Oddam w dobre ręce!" kliknij w poniższy link,
+    http://{{ domain }}{% url 'activate' uidb64=uid token=token %}
+{% endautoescape %}
