@@ -22,13 +22,18 @@ class LandingPageView(View):
     def get(self, request):
         donations = Donation.objects.all()
         bags_quantity = 0
-        organizations = []
+        quantity_of_organizations = []
+        fundations = Institution.objects.filter(type=0)
+        organizations = Institution.objects.filter(type=1)
+        local = Institution.objects.filter(type=2)
         for donation in donations:
             bags_quantity += donation.quantity
-            if donation.institution not in organizations:
-                organizations.append(donation.institution)
+            if donation.institution not in quantity_of_organizations:
+                quantity_of_organizations.append(donation.institution)
         context = {"bags_quantities": bags_quantity,
-                   "organization_quantities": len(organizations)}
+                   "organization_quantities": len(quantity_of_organizations),
+                   "organizations": organizations, "fundations": fundations,
+                   "locals": local}
         return render(request, "index.html", context)
 
 
